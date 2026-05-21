@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Prompt Backup v131381</title>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--panel2:#1d2230;--line:#2b3242;--text:#eef2ff;--muted:#a7b0c0;--accent:#7c9cff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444} body.light{--bg:#f6f7fb;--panel:#ffffff;--panel2:#eef2ff;--line:#d7deea;--text:#182033;--muted:#54627d;--accent:#5577ff;--ok:#15803d;--warn:#b45309;--bad:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#161b28 0%,#0f1115 55%);color:var(--text);font-family:system-ui,-apple-system,sans-serif} body.light{background:linear-gradient(180deg,#fbfcff,#eef3ff)}
+.wrap{max-width:1080px;margin:0 auto;padding:14px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px}
+.title{font-size:22px;font-weight:900}.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 12px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn:active{opacity:.75}.btn.pri{background:var(--accent);border-color:transparent;color:#fff}.btn.red{background:#4b1f25;border-color:#69313a}.btn.active{outline:2px solid #c7d2fe}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.025),transparent);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0}
+.input,.sel,.ta{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0c1020;color:var(--text);font-size:14px;outline:none;display:block}
+.ta{min-height:130px;resize:vertical}
+.field{display:grid;gap:5px;margin:9px 0}.lbl{font-size:12px;color:#cbd5e1}.hint{font-size:11px;color:var(--muted)}
+.list{display:grid;gap:12px}
+.pc{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px}
+.ph{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.pname{font-size:16px;font-weight:900}.pmeta{font-size:12px;color:var(--muted);margin-top:3px}
+.psum{margin-top:9px;color:#d8e0f3;font-size:13px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:11px;background:#1e2538;border:1px solid #2d3850;border-radius:999px;padding:3px 8px;color:var(--muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.vtable{margin-top:11px;border-top:1px solid var(--line);padding-top:10px;display:none;gap:0}.vtable.open{display:grid}
+.vrow{display:flex;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid #1d2436;flex-wrap:wrap}
+.vrow:last-child{border-bottom:none}
+.vtag{font-size:12px;font-weight:800;background:#252b3a;border:1px solid #394459;border-radius:8px;padding:4px 10px;min-width:60px;text-align:center}
+.vnote{font-size:11px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sync{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.srow{display:flex;justify-content:space-between;align-items:center;background:#0e1320;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;margin:6px 0}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}
+.pill.ok{background:rgba(34,197,94,.15);color:#6ee79b}.pill.warn{background:rgba(245,158,11,.15);color:#fcd34d}.pill.bad{background:rgba(239,68,68,.15);color:#fca5a5}
+.notice{background:#111826;border:1px solid #2a3a55;border-radius:12px;padding:11px;margin:10px 0;color:#d5e4ff;font-size:13px;line-height:1.5}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:14px;z-index:200}
+.modal{width:min(600px,100%);background:#111622;border:1px solid var(--line);border-radius:18px;padding:16px;max-height:92vh;overflow-y:auto}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+@media(max-width:700px){.sync{grid-template-columns:1fr}}
+
+.fbar{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;align-items:center;padding:6px 0 2px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#2d3a50 transparent}
+.fbar::-webkit-scrollbar{height:3px}
+.fbar::-webkit-scrollbar-thumb{background:#2d3a50;border-radius:4px}
+.flabel{flex:0 0 auto;align-self:center;font-size:11px;color:#93a0b8;margin-right:2px;white-space:nowrap}
+.fpill{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:6px 12px;border-radius:999px;background:#171f2d;border:1px solid #303c52;color:#dbe4f7;font-size:12px;line-height:1.05;cursor:pointer;white-space:nowrap;user-select:none;transition:background .12s,border-color .12s,color .12s}
+.fpill.on{background:#33456a;border-color:#5a6f99;color:#ffffff;font-weight:500;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.fpill:hover:not(.on){border-color:#405276}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div><div class="title">Prompt Backup v131381</div><div class="sub">新增 prompt 有版本 dropdown · 一鍵複製版本內容 · 設為版本即時更新</div></div>
+    <div class="row" style="align-items:center"><button class="btn" data-tab="main">主畫面</button><button class="btn" data-tab="backup">備份工具</button><button data-act="toggleTheme" title="黑暗模式" style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 6px;color:var(--text);line-height:1">☾</button></div>
+  </div>
+
+  <!-- 主畫面 -->
+  <div id="pane-main">
+    <div class="card">
+      
+      <div class="row">
+        <input id="search" class="input" style="flex:1" placeholder="搜尋 prompt / 版本 / 內容" />
+        <button class="btn pri" data-act="new">新增 Prompt</button>
+      </div>
+      <div id="fbar" class="fbar">
+        <div class="flabel">來源類型</div>
+        <button type="button" class="fpill on" data-ft="全部" onclick="window.__setSourceFilter('全部')">全部</button>
+        <button type="button" class="fpill" data-ft="Gem Instruction" onclick="window.__setSourceFilter('Gem Instruction')">Gem Instruction</button>
+        <button type="button" class="fpill" data-ft="Gem Prompt" onclick="window.__setSourceFilter('Gem Prompt')">Gem Prompt</button>
+        <button type="button" class="fpill" data-ft="ChatGPT Prompt" onclick="window.__setSourceFilter('ChatGPT Prompt')">ChatGPT Prompt</button>
+        <button type="button" class="fpill" data-ft="Perplexity Prompt" onclick="window.__setSourceFilter('Perplexity Prompt')">Perplexity Prompt</button>
+        <button type="button" class="fpill" data-ft="Claude Prompt" onclick="window.__setSourceFilter('Claude Prompt')">Claude Prompt</button>
+        <button type="button" class="fpill" data-ft="Space Instructions" onclick="window.__setSourceFilter('Space Instructions')">Space Instructions</button>
+      </div>
+      <div id="sourceTypeFilter" class="row" style="margin-top:10px;gap:6px;overflow-x:auto;flex-wrap:nowrap"></div>
+      
+      
+    </div>
+    <div id="list" class="list"></div>
+  </div>
+
+  <!-- 備份工具 -->
+  <div id="pane-backup" style="display:none">
+    <div class="card">
+      <div class="sync">
+        <div>
+          <div class="title" style="font-size:15px">備份狀態</div>
+          <div class="srow"><span>同步狀態</span><span id="nasPill" class="pill warn">等待中</span></div>
+          <div class="srow"><span>最後操作</span><span id="nasTime" style="font-size:12px;color:var(--muted)">—</span></div>
+          <div class="srow"><span>錯誤訊息</span><span id="nasErr" style="font-size:12px;color:var(--muted)">—</span></div>
+        </div>
+        <div>
+          <div class="title" style="font-size:15px;margin-bottom:10px">操作</div>
+          <div class="row" style="flex-direction:column;align-items:stretch;gap:9px">
+            <button class="btn" data-act="exportJson">匯出 JSON</button>
+            <button class="btn" data-act="exportCsv">匯出 CSV</button>
+            <button class="btn" data-act="importJson">匯入 JSON</button>
+            <button class="btn" data-act="refreshNas">刷新 NAS 狀態</button>
+            <button class="btn red" data-act="clearAll">清除全部</button>
+          </div>
+        </div>
+      </div>
+      <div class="notice" id="backupNote">未有操作記錄。<br>匯出後如有設定 Synology Drive，佢會自動將檔案 sync 去 NAS 指定 folder，唔需要手動操作。</div>
+    </div>
+  </div>
+
+  <div style="color:var(--muted);font-size:11px;text-align:center;margin:12px 0">Prompt Backup v131381</div>
+</div>
+
+<!-- Modal：新增/編輯 Prompt 同版本 -->
+<div class="backdrop" id="modalBg">
+  <div class="modal">
+    <div class="title" id="mTitle" style="font-size:17px">新增 Prompt</div>
+    <div id="mDesc" style="font-size:11px;color:var(--muted);margin:3px 0 10px"></div>
+
+
+    <div class="field"><div class="lbl">名稱</div><input id="fTitle" class="input"/></div>
+    <div class="field">
+      <div class="lbl">來源類型</div>
+      <div id="sourceTypeChecks" class="sourceTypeChecks">
+        <label class="sourceTypeItem"><input type="checkbox" value="Gem Prompt"><span>Gem Prompt</span></label>
+        <label class="sourceTypeItem"><input type="checkbox" value="Gem Instruction"><span>Gem Instruction</span></label>
+        <label class="sourceTypeItem"><input type="checkbox" value="Space Instructions"><span>Space Instructions</span></label>
+        <label class="sourceTypeItem"><input type="checkbox" value="ChatGPT Prompt"><span>ChatGPT Prompt</span></label>
+        <label class="sourceTypeItem"><input type="checkbox" value="Claude Prompt"><span>Claude Prompt</span></label>
+        <label class="sourceTypeItem"><input type="checkbox" value="Perplexity Prompt"><span>Perplexity Prompt</span></label>
+        <label class="sourceTypeItem"><span></span></label>
+      </div>
+    </div>
+    <div class="field"><div class="lbl">來源名稱</div><input id="fSourceName" class="input"/></div>
+    <div class="field"><div class="lbl">分類</div><input id="fCategory" class="input"/></div>
+    <div class="field"><div class="lbl">目的</div><input id="fPurpose" class="input"/></div>
+    <div class="field"><div class="lbl">版本號</div><input id="fVersion" class="input" placeholder="不要預設，自己填入"/></div>
+    <div class="field"><div class="lbl">原始內容</div><textarea id="fContent" class="ta"></textarea></div>
+    <div class="field"><div class="lbl">備註</div><input id="fNote" class="input"/></div>
+
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" data-act="mCancel">取消</button>
+      <button class="btn pri" data-act="mSave">儲存</button>
+    </div>
+  </div>
+</div>
+
+<input id="fileInput" type="file" accept="application/json" hidden/>
+
+<script>
+(()=>{
+  const KEY='pb-v13117-debug';
+  // 清走所有舊版本 localStorage key，避免舊 data 污染
+  // v13116: 移除舊版自動清除邏輯，避免意外刪除 data
+  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+  let data=[], editId=null, editMode='new';
+
+  const ts=()=>new Date().toLocaleString('zh-HK',{hour12:false});
+  const uid=()=>crypto.randomUUID?crypto.randomUUID():'x'+Date.now()+Math.random().toString(36).slice(2);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const nextVer=vs=>{
+    const nums=(vs||[]).map(v=>String(v.version).match(/(\d+)\.(\d+)/)).filter(Boolean).map(m=>({maj:+m[1],min:+m[2]})).sort((a,b)=>a.maj!==b.maj?a.maj-b.maj:a.min-b.min);
+    const last=nums.pop(); return last?`V${last.maj}.${last.min+1}`:'';
+  };
+
+  // ── normalise old (v129.6) and new format ──
+  const normVer=v=>({version:String(v.version||v.ver||'').trim(),content:v.content||v.rawPrompt||'',note:v.note||'',updatedAt:v.updatedAt||ts()});
+  const norm=r=>{
+    const isOld=!Array.isArray(r.versions);
+    if(isOld){
+      const ver=String(r.version||'').trim();
+      return {id:r.id||uid(),title:r.name||r.title||'Untitled',sourceType:r.sourceType||'',sourceName:r.sourceName||'',category:r.category||'',purpose:r.purpose||'',updatedAt:r.updatedAt||ts(),latestVersion:ver,versions:ver?[{version:ver,content:r.rawPrompt||'',note:r.note||'',updatedAt:r.updatedAt||ts()}]:[]};
+    }
+    const versions=(r.versions||[]).map(normVer).filter(v=>v.version);
+    const lv=r.latestVersion||versions.slice(-1)[0]?.version||'';
+    return {id:r.id||uid(),title:r.title||r.name||'Untitled',sourceType:r.sourceType||'',sourceName:r.sourceName||'',category:r.category||'',purpose:r.purpose||'',updatedAt:r.updatedAt||ts(),latestVersion:lv,versions};
+  };
+
+  const load=()=>{
+    try{
+      const raw=localStorage.getItem(KEY);
+      if(!raw){data=[];return;}
+      const parsed=JSON.parse(raw);
+      data=parsed.map(norm);
+      console.log('[PB] load KEY='+KEY+' raw='+(raw?raw.length+'chars':'null')+' records='+data.length);
+    }catch(e){
+      console.error('[PB] load error',e);
+      data=[];
+    }
+  };
+  const themeKey='pb-theme-v13117-debug';
+  const applyTheme=()=>{document.body.classList.toggle('light', localStorage.getItem(themeKey)==='light');};
+  applyTheme();
+  const syncThemeIcon=()=>{ const b=document.getElementById('themeFloat')||document.querySelector('[data-act=\"toggleTheme\"]'); if(b) b.textContent = localStorage.getItem(themeKey)==='light' ? '☼' : '☾'; };
+  syncThemeIcon();
+
+  const saveLS=()=>{
+    const str=JSON.stringify(data);
+    localStorage.setItem(KEY,str);
+    console.log('[PB] saveLS KEY='+KEY+' records='+data.length+' size='+str.length+'chars');
+  };
+
+  const sample=()=>{
+    if(localStorage.getItem(KEY)!==null) return; // KEY 存在即代表用戶有用過，唔寫 sample
+    data=[
+      {id:uid(),title:'Prompt備份Gem主指令',sourceType:'Gem Prompt',sourceName:'Prompt備份gem',category:'備份',purpose:'整理 prompt 成備份記錄。',updatedAt:ts(),latestVersion:'V1.21',versions:[
+        {version:'V1.21',content:'你係我專屬嘅 Prompt備份助手，任務係將 thread 內嘅 Prompt整理成可備份記錄。',note:'最新版',updatedAt:ts()},
+        {version:'V1.20',content:'舊版 Prompt備份助手基礎指令。',note:'舊版',updatedAt:ts()}
+      ]},
+      {id:uid(),title:'Perplexity Space 指令',sourceType:'Space Instructions',sourceName:'設計prompt-Space',category:'系統指令',purpose:'統一回覆格式。',updatedAt:ts(),latestVersion:'V1',versions:[
+        {version:'V1',content:'每次回覆格式：📍 結論、✅ 已確認、🔍 拆解、🔧 下一步。',note:'',updatedAt:ts()}
+      ]}
+    ];
+    saveLS();
+  };
+
+  // 攞目前最新版本 record
+  const latestRec=p=>{
+    const v=(p.versions||[]).find(v=>v.version===p.latestVersion);
+    return v||(p.versions||[]).slice(-1)[0]||{content:'',note:'',version:'',updatedAt:''};
+  };
+
+  const q=()=>$('#search').value.trim().toLowerCase();
+  const filtered=()=>{ const base=!q()?data:data.filter(p=>[p.title,p.latestVersion,p.sourceType,p.sourceName,p.category,...(p.versions||[]).map(v=>v.content+' '+v.version+' '+v.note)].join(' ').toLowerCase().includes(q())); const f=(window.__sourceFilter||'').trim(); return !f ? base : base.filter(p=>{ const s=String(p.sourceType||'').trim(); return s===f || s.split('||').map(x=>x.trim()).includes(f); }); };
+
+  const render=()=>{
+    const arr=filtered();
+    const list=$('#list');
+    if(!arr.length){list.innerHTML='<div class="empty">未有記錄</div>'; return;}
+    list.innerHTML=arr.map(p=>{
+      const rec=latestRec(p);
+      const vrows=(p.versions||[]).slice().sort((a,b)=>a.updatedAt<b.updatedAt?1:-1).map(v=>`
+        <div class="vrow">
+          <span class="vtag">${esc(v.version)}</span>
+          <span class="vnote">${esc(v.note||'')}</span>
+          <button class="btn" style="padding:6px 10px;font-size:12px" data-act="setver" data-id="${p.id}" data-ver="${esc(v.version)}">設為版本</button>
+          <button class="btn" style="padding:6px 10px;font-size:12px" data-act="editver" data-id="${p.id}" data-ver="${esc(v.version)}">編輯</button>
+          <button class="btn" style="padding:6px 10px;font-size:12px" data-act="clipver" data-id="${p.id}" data-ver="${esc(v.version)}">複製</button>
+        </div>`).join('');
+      return `
+        <div class="pc">
+          <div class="ph">
+            <div>
+              <div class="pname">${esc(p.title)}</div>
+              <div class="pmeta">版本：${esc(p.latestVersion)} · ${esc(p.updatedAt)}</div>
+            </div>
+            <div class="row"> <button class="btn" data-act="togglev" data-id="${p.id}">版本列表</button>
+            </div>
+          </div>
+          <div class="psum">${esc(rec.content||'（未有內容）')}</div>
+          <div class="tags">${p.sourceType?`<span class="tag">${esc(p.sourceType)}</span>`:''}${p.sourceName?`<span class="tag">${esc(p.sourceName)}</span>`:''}${p.category?`<span class="tag">${esc(p.category)}</span>`:''}</div>
+          <div class="acts">
+            <button class="btn" data-act="addver" data-id="${p.id}">新增版本</button>
+            <button class="btn red" data-act="del" data-id="${p.id}">刪除</button>
+          </div>
+          <div class="vtable" id="vt-${p.id}">${vrows}</div>
+        </div>`;
+    }).join('');
+  };
+
+  // ── Modal open ──
+  const openM=(rid,ver,mode)=>{
+    editId=rid; editMode=mode;
+    const src=data.find(x=>x.id===rid)||{title:'',sourceType:'',sourceName:'',category:'',purpose:'',versions:[],latestVersion:''};
+    const p=JSON.parse(JSON.stringify(src));
+    const vv=ver?(p.versions||[]).find(x=>x.version===ver):latestRec(p);
+    const titles={new:'新增 Prompt',addver:'新增版本',edit:'編輯版本'};
+    const descs={new:'揀版本做參考，版本號留空自己填。',addver:'揀版本做參考，再新增一個新版本。',edit:`編輯版本 ${ver||''} 嘅內容。`};
+    $('#mTitle').textContent=titles[mode]||'編輯';
+    $('#mDesc').textContent=descs[mode]||'';
+    $('#fTitle').value=p.title||'';
+    syncSourceTypeChecks(p.sourceType||'');
+    $('#fSourceName').value=p.sourceName||'';
+    $('#fCategory').value=p.category||'';
+    $('#fPurpose').value=p.purpose||'';
+    $('#fNote').value=vv?.note||'';
+    const vers=(p.versions||[]);
+    if(mode==='new'){ $('#fVersion').value=''; $('#fContent').value=vv?.content||''; }
+    else if(mode==='addver'){ $('#fVersion').value=nextVer(p.versions)||''; $('#fContent').value=vv?.content||''; }
+    else if(mode==='edit'){ $('#fVersion').value=ver||''; $('#fContent').value=vv?.content||''; }
+    $('#modalBg').style.display='flex';
+  };
+  const closeM=()=>$('#modalBg').style.display='none';
+  const syncSourceTypeChecks=(vals)=>{const set=new Set((vals||'').split('||').filter(Boolean)); document.querySelectorAll('#sourceTypeChecks input[type=checkbox]').forEach(i=>i.checked=set.has(i.value));};
+
+  // ── Save ──
+  const saveM=()=>{
+    const title=$('#fTitle').value.trim()||'Untitled';
+    const sourceType=[...document.querySelectorAll('#sourceTypeChecks input[type=checkbox]:checked')].map(i=>i.value).join('||'), sourceName=$('#fSourceName').value.trim();
+    const category=$('#fCategory').value.trim(), purpose=$('#fPurpose').value.trim();
+    const version=$('#fVersion').value.trim(), content=$('#fContent').value, note=$('#fNote').value.trim();
+    if(!version){alert('請填版本號'); return;}
+    let p=data.find(x=>x.id===editId);
+    if(!p){p={id:uid(),title,sourceType,sourceName,category,purpose,updatedAt:ts(),latestVersion:version,versions:[]}; data.unshift(p);}
+    p.title=title; p.sourceType=sourceType; p.sourceName=sourceName; p.category=category; p.purpose=purpose; p.updatedAt=ts();
+    p.versions=JSON.parse(JSON.stringify(p.versions||[]));
+    const idx=p.versions.findIndex(v=>v.version===version);
+    const rec={version,content,note,updatedAt:ts()};
+    if(idx>=0) p.versions[idx]=rec; else p.versions.push(rec);
+    p.latestVersion=version;
+    saveLS(); render(); closeM();
+  };
+
+  // ── Status ──
+  const setNas=(state,msg,err='—')=>{
+    $('#nasPill').className='pill '+state; $('#nasPill').textContent=msg;
+    $('#nasTime').textContent=ts(); $('#nasErr').textContent=err;
+    $('#backupNote').innerHTML=`${state==='ok'?'✅':'state'==='bad'?'❌':'⏳'} ${msg}${err&&err!=='—'?' — '+err:''}<br>匯出後如有設定 Synology Drive，佢會自動將檔案 sync 去 NAS 指定 folder，唔需要手動操作。`;
+  };
+
+  const exportJSON=async()=>{
+    const fname=`prompt-backup-${new Date().toISOString().slice(0,10)}.json`;
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    if(window.showSaveFilePicker){
+      try{
+        const fh=await window.showSaveFilePicker({suggestedName:fname,types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+        const w=await fh.createWritable();
+        await w.write(blob);
+        await w.close();
+        setNas('ok',`✅ 已儲存至 ${fh.name}`);
+        return;
+      }catch(e){
+        if(e.name==='AbortError') return;
+        console.warn('showSaveFilePicker failed, fallback',e);
+      }
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=fname;
+    a.click();
+    setNas('ok','✅ JSON 已下載');
+  };
+  const exportCSV=async()=>{
+    const rows=[['title','latestVersion','updatedAt','sourceType','sourceName','category','purpose','version','vUpdatedAt','note','content']];
+    data.forEach(p=>(p.versions||[]).forEach(v=>rows.push([p.title,p.latestVersion,p.updatedAt,p.sourceType,p.sourceName,p.category,p.purpose,v.version,v.updatedAt,v.note,v.content])));
+    const csv=rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}`).join(',')).join('\n');
+    const fname=`prompt-backup-${new Date().toISOString().slice(0,10)}.csv`;
+    const blob=new Blob([csv],{type:'text/csv'});
+    if(window.showSaveFilePicker){
+      try{
+        const fh=await window.showSaveFilePicker({suggestedName:fname,types:[{description:'CSV',accept:{'text/csv':['.csv']}}]});
+        const w=await fh.createWritable();
+        await w.write(blob);
+        await w.close();
+        setNas('ok',`✅ CSV 已儲存至 ${fh.name}`);
+        return;
+      }catch(e){
+        if(e.name==='AbortError') return;
+        console.warn('showSaveFilePicker CSV fallback',e);
+      }
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=fname;
+    a.click();
+    setNas('ok','✅ CSV 已下載');
+  }
+  const importJSON=async f=>{
+    try{
+      const t=await f.text();
+      const arr=JSON.parse(t);
+      const imported=(Array.isArray(arr)?arr:(arr.records||arr.data||[])).map(norm);
+      if(!imported.length){setNas('bad','匯入失敗：資料為空或格式不對'); return;}
+      data=imported;
+      try{
+        localStorage.setItem(KEY,JSON.stringify(data));
+      }catch(se){
+        setNas('bad','儲存失敗（localStorage 已滿？）：'+se.message); return;
+      }
+      render();
+      const dbBar=document.getElementById('debugBar');
+      const dbTxt=document.getElementById('dbTxt');
+      if(dbBar&&dbTxt){
+        dbBar.style.display='block';
+        dbTxt.textContent=`KEY=${KEY} | saved ${data.length} records | LS size=${localStorage.getItem(KEY)?.length||0} chars`;
+      }
+      setNas('ok',`已匯入 ${data.length} 個 prompt，已儲存至本機`);
+    }catch(e){setNas('bad','匯入失敗：'+e.message);}
+  };
+
+  window.__sourceFilter='';
+  const setSourceFilter=(t)=>{ window.__sourceFilter=(t==='全部'?'':t); document.querySelectorAll('.fpill').forEach(x=>x.classList.toggle('on', x.dataset.ft===t)); render(); };
+  const filterBySource=(items)=>{ const f=window.__sourceFilter||''; return !f ? items : items.filter(p=>String(p.sourceType||'').split('||').includes(f)); };
+
+  const setTab=n=>{$('#pane-main').style.display=n==='main'?'block':'none'; $('#pane-backup').style.display=n==='backup'?'block':'none'; $$('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));};
+
+  
+
+  window.__sourceFilter = window.__sourceFilter || '';
+  window.__toggleSourceFilter = (event) => {
+    const b = event.target.closest('.fpill');
+    if (!b) return;
+    window.__sourceFilter = (b.dataset.ft === '全部' ? '' : b.dataset.ft);
+    document.querySelectorAll('#fbar .fpill').forEach(x => x.classList.toggle('on', x.dataset.ft === b.dataset.ft));
+    render();
+  };
+
+
+  window.__sourceFilter = window.__sourceFilter || '';
+  window.__setSourceFilter = (t) => {
+    window.__sourceFilter = (t === '全部' ? '' : t);
+    document.querySelectorAll('#fbar .fpill').forEach(x => x.classList.toggle('on', x.dataset.ft === t));
+    render();
+  };
+
+  // ── Central click handler ──
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('[data-act],[data-tab]'); if(!el) return;
+    if(el.dataset.tab){ setTab(el.dataset.tab); return; }
+    if(el.dataset.filterstype!==undefined){ activeSourceTypeFilter = el.dataset.filterstype==='全部' ? '' : el.dataset.filterstype; render(); return; }
+    const act=el.dataset.act, rid=el.dataset.id, ver=el.dataset.ver;
+    const p=data.find(x=>x.id===rid);
+
+    if(act==='toggleTheme'){ const cur=localStorage.getItem(themeKey)==='light'?'dark':'light'; localStorage.setItem(themeKey,cur); applyTheme(); syncThemeIcon(); return; }
+    
+    
+    if(act==='new') return openM(null,null,'new');
+    if(act==='exportJson') return exportJSON();
+    if(act==='exportCsv') return exportCSV();
+    if(act==='importJson') return $('#fileInput').click();
+    if(act==='refreshNas') return setNas('ok','NAS 已刷新');
+    if(act==='clearAll'){ if(confirm('清除全部資料？此操作不可撤回。')){data=[]; saveLS(); render(); setNas('warn','已清除'); setTimeout(()=>location.reload(),600);} return; }
+    if(act==='mSave') return saveM();
+    if(act==='mCancel') return closeM();
+    if(!p) return;
+
+    if(act==='togglev'){ const vt=document.getElementById('vt-'+rid); if(vt){const open=vt.classList.toggle('open'); el.textContent=open?'收起':'版本列表';} return; }
+    if(act==='setver'){ p.latestVersion=ver; p.updatedAt=ts(); saveLS(); render(); return; }
+    if(act==='addver') return openM(rid,p.latestVersion,'addver');
+    if(act==='editver') return openM(rid,ver||p.latestVersion,'edit');
+    if(act==='clipver'){
+      const rec=(p.versions||[]).find(x=>x.version===ver)||latestRec(p);
+      navigator.clipboard?.writeText(rec.content||'').then(()=>setNas('ok','已複製版本內容：'+ver)).catch(()=>setNas('bad','複製失敗','Clipboard API 未授權'));
+      return;
+    }
+    if(act==='del'){ if(confirm('刪除呢個 prompt？')){ data=data.filter(x=>x.id!==rid); saveLS(); render(); } return; }
+  });
+
+  $('#search').addEventListener('input',render);
+  $('#modalBg').addEventListener('click',e=>{if(e.target===e.currentTarget) closeM();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape') closeM();});
+  document.addEventListener('change',e=>{if(e.target?.id==='fileInput'){ const f=e.target.files?.[0]; if(f) importJSON(f); e.target.value=''; }});
+
+  load(); sample(); render();
+})();
+</script>
+
+<div id="debugBar" style="position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-size:10px;padding:4px 8px;z-index:9999;font-family:monospace;display:none">
+  DEBUG: <span id="dbTxt">—</span>
+  <button onclick="document.getElementById('debugBar').style.display='none'" style="margin-left:8px;background:#333;color:#fff;border:none;padding:2px 6px;cursor:pointer">✕</button>
+</div>
+</body>
+</html>
